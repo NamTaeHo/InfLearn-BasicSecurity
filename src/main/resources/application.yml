@@ -14,3 +14,8 @@ spring:
         format_sql: true
         default_batch_fetch_size: 100
       open-in-view: true
+
+  security:
+    user:
+      name: user
+      password: 1111
