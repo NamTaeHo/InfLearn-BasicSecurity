@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration;
 import org.springframework.security.config.annotation.web.configurers.AbstractAuthenticationFilterConfigurer;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -37,6 +38,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().authenticated()
                 );
+
         http
                 .formLogin(login -> login
                         //.loginPage("/loginPage")
@@ -88,6 +90,14 @@ public class SecurityConfig {
                         .tokenValiditySeconds(3600)
                         .alwaysRemember(true)
                         .userDetailsService(userDetailService)
+                );
+
+        http
+                .sessionManagement(sessionManagement ->sessionManagement
+                        .sessionFixation(SessionManagementConfigurer.SessionFixationConfigurer::changeSessionId)
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(true)
+
                 );
 
         return http.build();
