@@ -5,8 +5,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration;
@@ -15,6 +18,9 @@ import org.springframework.security.config.annotation.web.configurers.SessionMan
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -23,20 +29,42 @@ import org.springframework.security.web.authentication.logout.LogoutSuccessHandl
 
 import java.io.IOException;
 
+import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasRole;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    @Bean
+    public PasswordEncoder passwordEncoder(){
+        return new BCryptPasswordEncoder();
+    }
 
-    private final UserDetailsService userDetailService;
+    @Bean
+    @Primary
+    public AuthenticationManagerBuilder configureGlobal(AuthenticationManagerBuilder auth) throws Exception{
+
+        auth.inMemoryAuthentication()
+                .withUser("user").password(passwordEncoder().encode("1111")).roles("USER").and()
+                .withUser("sys").password(passwordEncoder().encode("1111")).roles("SYS").and()
+                .withUser("admin").password(passwordEncoder().encode("1111")).roles("ADMIN");
+
+        return auth;
+
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
+
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().authenticated()
+                        .requestMatchers("/user").hasRole("USER")
+                        .requestMatchers("/admin/pay").hasAnyRole("SYS","USER")
+                        .requestMatchers("/admin/**").hasAnyRole("ADMIN","SYS","USER")
+                        .anyRequest()
+                        .authenticated()
                 );
 
         http
@@ -84,21 +112,22 @@ public class SecurityConfig {
                         .deleteCookies("remember-me")
                 );
 
-        http
+/*       http
                 .rememberMe(rememberMe -> rememberMe
                         .rememberMeParameter("remember")
                         .tokenValiditySeconds(3600)
                         .alwaysRemember(true)
-                        .userDetailsService(userDetailService)
-                );
 
-        http
+                );*/
+
+         http
                 .sessionManagement(sessionManagement ->sessionManagement
                         .sessionFixation(SessionManagementConfigurer.SessionFixationConfigurer::changeSessionId)
                         .maximumSessions(1)
-                        .maxSessionsPreventsLogin(true)
-
+                        .maxSessionsPreventsLogin(false)
                 );
+
+
 
         return http.build();
     }
