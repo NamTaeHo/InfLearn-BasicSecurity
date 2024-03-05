@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -37,9 +38,34 @@ import java.io.IOException;
 
 import static org.springframework.security.authorization.AuthorityAuthorizationManager.hasRole;
 
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        http
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().authenticated()
+                );
+
+        http
+                .formLogin(login -> login
+                        .defaultSuccessUrl("/home")
+                );
+
+        return http.build();
+    }
+}
+
+/*
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@Order(0)
 public class SecurityConfig {
 
     @Bean
@@ -90,13 +116,15 @@ public class SecurityConfig {
                                 response.sendRedirect(redirectUrl);
                             }
                         })
-                        /*.failureHandler(new AuthenticationFailureHandler() {
+                        */
+/*.failureHandler(new AuthenticationFailureHandler() {
                             @Override
                             public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
                                 System.out.println("exception: " + exception.getMessage());
                                 response.sendRedirect("/login");
                             }
-                        })*/
+                        })*//*
+
                         .permitAll()
 
                 );
@@ -121,12 +149,14 @@ public class SecurityConfig {
                         .deleteCookies("remember-me")
                 );
 
+*/
 /*       http
                 .rememberMe(rememberMe -> rememberMe
                         .rememberMeParameter("remember")
                         .tokenValiditySeconds(3600)
                         .alwaysRemember(true)
-                );*/
+                );*//*
+
 
         http
                 .sessionManagement(sessionManagement -> sessionManagement
@@ -137,12 +167,14 @@ public class SecurityConfig {
 
         http
                 .exceptionHandling(exceptionHandling -> exceptionHandling
-                        /*.authenticationEntryPoint(new AuthenticationEntryPoint() {
+                        */
+/*.authenticationEntryPoint(new AuthenticationEntryPoint() {
                             @Override
                             public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
                                 response.sendRedirect("/login");
                             }
-                        })*/
+                        })*//*
+
                         .accessDeniedHandler(new AccessDeniedHandler() {
                             @Override
                             public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
@@ -154,3 +186,40 @@ public class SecurityConfig {
         return http.build();
     }
 }
+
+*/
+
+
+
+/*
+
+@Configuration
+@Order(1)
+class SecurityConfig2 {
+
+
+    @Bean
+    public SecurityFilterChain filterChain2(HttpSecurity http) throws Exception {
+
+        http
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()
+                );
+
+        http
+                .formLogin(login -> login
+                        //.loginPage("/loginPage")
+                        .defaultSuccessUrl("/")
+                );
+
+
+        return http.build();
+    }
+
+
+}
+
+
+*/
+
+
